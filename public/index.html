@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GamerVault - Tienda Premium de Hardware</title>
+  <meta name="description" content="La mejor tienda de hardware con tecnología de punta y despacho inmediato.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">
+        <span class="gradient-text">GamerVault</span>
+      </div>
+      <nav>
+        <button id="nav-catalog-btn" class="nav-btn active">Catálogo</button>
+        <button id="nav-orders-btn" class="nav-btn">Historial de Órdenes</button>
+        <button id="nav-admin-btn" class="nav-btn">Administración</button>
+      </nav>
+      <div class="cart-trigger" id="cart-toggle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span id="cart-badge" class="badge">0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="container">
+    <!-- View: Catalog -->
+    <section id="catalog-view" class="view-section active">
+      <div class="section-header">
+        <h2>Equipamiento de Élite</h2>
+        <p>Selecciona los componentes de más alto rendimiento para tu build.</p>
+      </div>
+      <div class="catalog-grid" id="product-list">
+        <!-- Products injected dynamically -->
+      </div>
+    </section>
+
+    <!-- View: Orders -->
+    <section id="orders-view" class="view-section">
+      <div class="section-header">
+        <h2>Historial de Órdenes</h2>
+        <p>Monitorea y revisa todas tus compras realizadas.</p>
+      </div>
+      <div class="orders-container" id="orders-list">
+        <!-- Orders injected dynamically -->
+      </div>
+    </section>
+
+    <!-- View: Admin -->
+    <section id="admin-view" class="view-section">
+      <div class="section-header">
+        <h2>Panel de Administración</h2>
+        <p>Añade nuevos productos al inventario o elimina productos existentes.</p>
+      </div>
+
+      <div class="admin-grid">
+        <!-- Add Product Form -->
+        <div class="admin-card">
+          <h3>Añadir Nuevo Producto</h3>
+          <form id="add-product-form" class="admin-form">
+            <div class="form-group">
+              <label for="prod-id">Identificador Único (ID)</label>
+              <input type="text" id="prod-id" placeholder="ej. prod-5" required>
+            </div>
+            <div class="form-group">
+              <label for="prod-name">Nombre del Producto</label>
+              <input type="text" id="prod-name" placeholder="ej. Audífonos Bluetooth" required>
+            </div>
+            <div class="form-group">
+              <label for="prod-desc">Descripción</label>
+              <textarea id="prod-desc" placeholder="ej. Auriculares con cancelación de ruido..." rows="3"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prod-price">Precio ($)</label>
+                <input type="number" id="prod-price" min="1" placeholder="150" required>
+              </div>
+              <div class="form-group">
+                <label for="prod-stock">Stock Inicial</label>
+                <input type="number" id="prod-stock" min="0" placeholder="20" required>
+              </div>
+            </div>
+            <button type="submit" class="add-to-cart-btn" style="margin-top: 1rem;">Crear Producto</button>
+          </form>
+        </div>
+
+        <!-- Manage Inventory List -->
+        <div class="admin-card">
+          <h3>Inventario Actual</h3>
+          <div class="inventory-table-container">
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-list">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Shopping Cart Side Drawer -->
+  <div class="cart-drawer" id="cart-drawer">
+    <div class="drawer-header">
+      <h3>Tu Carrito</h3>
+      <button class="close-btn" id="close-cart">&times;</button>
+    </div>
+    <div class="drawer-content">
+      <div class="cart-items" id="cart-items-container">
+        <!-- Cart items injected dynamically -->
+      </div>
+      <div class="cart-summary">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="cart-subtotal">$0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Envío</span>
+          <span class="free-badge">Gratis</span>
+        </div>
+        <div class="summary-row total-row">
+          <span>Total</span>
+          <span id="cart-total">$0.00</span>
+        </div>
+      </div>
+      <button class="checkout-btn" id="checkout-btn">Confirmar Compra</button>
+    </div>
+  </div>
+
+  <!-- Drawer Overlay -->
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+
+  <!-- Notification Toast -->
+  <div class="toast" id="toast"></div>
+
+  <footer>
+    <p>&copy; 2026 GamerVault. Powered by Antigravity Clean Architecture Backend.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
