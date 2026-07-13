@@ -35,12 +35,13 @@ CREATE TABLE IF NOT EXISTS order_items (
 -- 5. Insertar productos semilla
 INSERT INTO products (id, name, description, price, stock) 
 VALUES 
-    ('prod-1', 'Laptop Gamer Pro', 'Laptop con procesador i9 y tarjeta RTX 4080', 2500.00, 10),
-    ('prod-2', 'Mouse Mecánico Inalámbrico', 'Mouse ergonómico con sensor óptico de 26k DPI', 120.00, 50),
-    ('prod-3', 'Teclado Mecánico RGB', 'Teclado hot-swappable con switches lineares', 180.00, 25),
-    ('prod-4', 'Monitor Curvo 34"', 'Monitor ultrawide 144Hz 1ms', 600.00, 15)
+    ('prod-1', 'Laptop Gamer Pro', 'Laptop con procesador i9 y tarjeta RTX 4080', 35000.00, 10),
+    ('prod-2', 'Mouse Mecánico Inalámbrico', 'Mouse ergonómico con sensor óptico de 26k DPI', 1200.00, 50),
+    ('prod-3', 'Teclado Mecánico RGB', 'Teclado hot-swappable con switches lineares', 1800.00, 25),
+    ('prod-4', 'Monitor Curvo 34"', 'Monitor ultrawide 144Hz 1ms', 8500.00, 15)
 ON DUPLICATE KEY UPDATE 
     name = VALUES(name),
     description = VALUES(description),
     price = VALUES(price),
     stock = VALUES(stock);
+
