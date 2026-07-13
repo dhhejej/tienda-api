@@ -304,12 +304,43 @@ function resetCardPreview() {
   previewExpiry.innerText = 'MM/AA';
 }
 
-// Confirm Purchase / Open Payment Gateway Modal
+// Confirm Purchase / Redirect to Stripe Checkout
 async function checkout() {
   if (cart.length === 0) return;
-  toggleCartDrawer(false);
-  togglePaymentModal(true);
+
+  checkoutBtn.disabled = true;
+  checkoutBtn.innerText = 'Redirigiendo a Stripe... 💳';
+
+  try {
+    const res = await fetch('/api/payments/create-checkout-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        items: cart.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity
+        }))
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Error al iniciar el pago.');
+    }
+
+    // Redirigir a la pasarela segura de Stripe
+    window.location.href = data.url;
+  } catch (err) {
+    showToast(err.message || 'Error al iniciar pasarela de pagos.');
+    console.error(err);
+    checkoutBtn.innerText = 'Confirmar Compra';
+    checkoutBtn.disabled = false;
+  }
 }
+
 
 // Process Simulated Payment and Submit Order
 async function processPayment(e) {

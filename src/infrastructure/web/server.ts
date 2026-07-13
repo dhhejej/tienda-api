@@ -6,11 +6,17 @@ import { MysqlProductRepository } from '../database/MysqlProductRepository';
 import { MysqlOrderRepository } from '../database/MysqlOrderRepository';
 import { createProductRouter } from './routes/productRoutes';
 import { createOrderRouter } from './routes/orderRoutes';
+import { createPaymentRouter } from './routes/paymentRoutes';
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.json());
+// Guardar rawBody en la petición para verificar firmas criptográficas de webhooks de Stripe
+app.use(express.json({
+  verify: (req: any, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 
 // Servir archivos estáticos del frontend
 app.use(express.static(path.resolve(__dirname, '../../../public')));
@@ -18,9 +24,10 @@ app.use(express.static(path.resolve(__dirname, '../../../public')));
 const productRepository = new MysqlProductRepository();
 const orderRepository = new MysqlOrderRepository();
 
-
 app.use('/api/products', createProductRouter(productRepository));
 app.use('/api/orders', createOrderRouter(orderRepository, productRepository));
+app.use('/api/payments', createPaymentRouter(productRepository, orderRepository));
+
 
 async function startServer() {
   try {
