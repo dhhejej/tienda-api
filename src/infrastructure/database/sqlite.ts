@@ -71,10 +71,10 @@ export async function initDatabase(): Promise<void> {
   const countRow = await queryGet<{ count: number }>('SELECT COUNT(*) as count FROM products');
   if (countRow && countRow.count === 0) {
     const defaultProducts = [
-      ['prod-1', 'Laptop Gamer Pro', 'Laptop con procesador i9 y tarjeta RTX 4080', 2500, 10],
-      ['prod-2', 'Mouse Mecánico Inalámbrico', 'Mouse ergonómico con sensor óptico de 26k DPI', 120, 50],
-      ['prod-3', 'Teclado Mecánico RGB', 'Teclado hot-swappable con switches lineares', 180, 25],
-      ['prod-4', 'Monitor Curvo 34"', 'Monitor ultrawide 144Hz 1ms', 600, 15]
+      ['prod-1', 'Laptop Gamer Pro', 'Laptop con procesador i9 y tarjeta RTX 4080', 35000, 10],
+      ['prod-2', 'Mouse Mecánico Inalámbrico', 'Mouse ergonómico con sensor óptico de 26k DPI', 1200, 50],
+      ['prod-3', 'Teclado Mecánico RGB', 'Teclado hot-swappable con switches lineares', 1800, 25],
+      ['prod-4', 'Monitor Curvo 34"', 'Monitor ultrawide 144Hz 1ms', 8500, 15]
     ];
 
     for (const p of defaultProducts) {
