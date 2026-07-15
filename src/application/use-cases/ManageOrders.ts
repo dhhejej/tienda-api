@@ -15,22 +15,22 @@ export class ManageOrders {
     private productRepository: ProductRepository
   ) {}
 
-  public async getOrders(userId?: string): Promise<Order[]> {
+  public async getOrders(userId?: string, storeId?: string): Promise<Order[]> {
     if (userId) {
-      return this.orderRepository.findByUserId(userId);
+      return this.orderRepository.findByUserId(userId, storeId);
     }
-    return this.orderRepository.findAll();
+    return this.orderRepository.findAll(storeId);
   }
 
-  public async getOrderDetails(id: string): Promise<Order | null> {
-    return this.orderRepository.findById(id);
+  public async getOrderDetails(id: string, storeId?: string): Promise<Order | null> {
+    return this.orderRepository.findById(id, storeId);
   }
 
-  public async createOrder(orderId: string, input: CreateOrderInput, userId?: string): Promise<Order> {
+  public async createOrder(orderId: string, input: CreateOrderInput, userId?: string, storeId?: string): Promise<Order> {
     const orderItems: OrderItem[] = [];
 
     for (const itemInput of input.items) {
-      const product = await this.productRepository.findById(itemInput.productId);
+      const product = await this.productRepository.findById(itemInput.productId, storeId);
       if (!product) {
         throw new Error(`Product not found: ${itemInput.productId}`);
       }
@@ -40,7 +40,7 @@ export class ManageOrders {
       }
 
       product.decreaseStock(itemInput.quantity);
-      await this.productRepository.save(product);
+      await this.productRepository.save(product, storeId);
 
       orderItems.push({
         productId: product.id,
@@ -51,7 +51,7 @@ export class ManageOrders {
     }
 
     const order = Order.create(orderId, orderItems, userId);
-    await this.orderRepository.save(order);
+    await this.orderRepository.save(order, storeId);
     return order;
   }
 }

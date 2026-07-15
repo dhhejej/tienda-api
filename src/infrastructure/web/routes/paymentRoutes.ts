@@ -21,11 +21,14 @@ export function createPaymentRouter(
         return res.status(400).json({ error: 'El carrito no puede estar vacío.' });
       }
 
+      const getStoreId = (req: any) => String(req.headers['x-store-id'] || req.query.storeId || 'tienda1');
+      const storeId = getStoreId(req);
+
       const lineItems = [];
       const validatedItems = [];
 
       for (const item of items) {
-        const product = await productRepository.findById(item.productId);
+        const product = await productRepository.findById(item.productId, storeId);
         if (!product) {
           return res.status(404).json({ error: `Producto no encontrado: ${item.productId}` });
         }
@@ -60,7 +63,8 @@ export function createPaymentRouter(
         cancel_url: `${req.headers.origin}/cancel.html`,
         metadata: {
           items: JSON.stringify(validatedItems),
-          userId: req.user?.id || ''
+          userId: req.user?.id || '',
+          storeId: storeId
         }
       });
 
@@ -104,12 +108,13 @@ export function createPaymentRouter(
           throw new Error('Metadatos de la sesión de Stripe vacíos.');
         }
 
+        const storeId = session.metadata?.storeId || 'tienda1';
         const items = JSON.parse(metadataItems) as Array<{ id: string; qty: number }>;
         const orderItems = [];
         let total = 0;
 
         for (const item of items) {
-          const product = await productRepository.findById(item.id);
+          const product = await productRepository.findById(item.id, storeId);
           if (!product) {
             console.error(`Producto ${item.id} no encontrado en webhook.`);
             continue;
@@ -126,7 +131,7 @@ export function createPaymentRouter(
 
           // Descontar inventario
           product.stock = Math.max(0, product.stock - item.qty);
-          await productRepository.save(product);
+          await productRepository.save(product, storeId);
         }
 
         // Obtener el userId de los metadatos de la sesión
@@ -142,7 +147,7 @@ export function createPaymentRouter(
           userId
         );
 
-        await orderRepository.save(newOrder);
+        await orderRepository.save(newOrder, storeId);
         console.log(`✅ Orden ${newOrder.id} registrada en MySQL y stock actualizado.`);
       } catch (error: any) {
         console.error('❌ Error procesando orden del Webhook:', error.message);

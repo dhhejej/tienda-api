@@ -8,16 +8,16 @@ export class InMemoryProductRepository implements ProductRepository {
     this.seedProducts();
   }
 
-  public async findAll(): Promise<Product[]> {
+  public async findAll(storeId?: string): Promise<Product[]> {
     return Array.from(this.products.values());
   }
 
-  public async findById(id: string): Promise<Product | null> {
+  public async findById(id: string, storeId?: string): Promise<Product | null> {
     const product = this.products.get(id);
     return product ? this.cloneProduct(product) : null;
   }
 
-  public async save(product: Product): Promise<void> {
+  public async save(product: Product, storeId?: string): Promise<void> {
     this.products.set(product.id, this.cloneProduct(product));
   }
 
@@ -44,7 +44,7 @@ export class InMemoryProductRepository implements ProductRepository {
     }
   }
 
-  public async delete(id: string): Promise<void> {
+  public async delete(id: string, storeId?: string): Promise<void> {
     this.products.delete(id);
   }
 }

@@ -11,6 +11,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_fallback_key';
 export function createAuthRouter(userRepository: UserRepository): Router {
   const router = Router();
 
+  const getStoreId = (req: Request) => String(req.headers['x-store-id'] || req.query.storeId || 'tienda1');
+
   // 1. Registro de Usuario
   router.post('/register', async (req: Request, res: Response) => {
     try {
@@ -19,8 +21,9 @@ export function createAuthRouter(userRepository: UserRepository): Router {
         return res.status(400).json({ error: 'Todos los campos (email, password, name) son obligatorios.' });
       }
 
-      // Validar si el email ya existe
-      const existingUser = await userRepository.findByEmail(email.trim().toLowerCase());
+      // Validar si el email ya existe en esta tienda
+      const storeId = getStoreId(req);
+      const existingUser = await userRepository.findByEmail(email.trim().toLowerCase(), storeId);
       if (existingUser) {
         return res.status(400).json({ error: 'El correo electrónico ya está registrado.' });
       }
@@ -31,7 +34,7 @@ export function createAuthRouter(userRepository: UserRepository): Router {
 
       // Crear y guardar el usuario
       const newUser = new User(userId, email.trim().toLowerCase(), passwordHash, name.trim(), 'customer');
-      await userRepository.save(newUser);
+      await userRepository.save(newUser, storeId);
 
       res.status(201).json({ message: 'Usuario registrado con éxito.' });
     } catch (error: any) {
@@ -48,7 +51,8 @@ export function createAuthRouter(userRepository: UserRepository): Router {
         return res.status(400).json({ error: 'Email y password son obligatorios.' });
       }
 
-      const user = await userRepository.findByEmail(email.trim().toLowerCase());
+      const storeId = getStoreId(req);
+      const user = await userRepository.findByEmail(email.trim().toLowerCase(), storeId);
       if (!user) {
         return res.status(400).json({ error: 'Credenciales inválidas (correo o contraseña incorrectos).' });
       }
@@ -88,7 +92,8 @@ export function createAuthRouter(userRepository: UserRepository): Router {
         return res.status(403).json({ error: 'Acceso denegado.' });
       }
       const rows = await queryAll<{ id: string; email: string; name: string; role: string }>(
-        'SELECT id, email, name, role FROM users ORDER BY name ASC'
+        'SELECT id, email, name, role FROM users WHERE store_id = ? ORDER BY name ASC',
+        [getStoreId(req)]
       );
       res.json(rows);
     } catch (error: any) {
@@ -105,13 +110,15 @@ export function createAuthRouter(userRepository: UserRepository): Router {
       }
 
       const userId = req.params.id;
+      const storeId = getStoreId(req);
+      
       // Validar que no se auto-elimine el administrador semilla
-      const user = await queryAll<any>('SELECT email FROM users WHERE id = ?', [userId]);
+      const user = await queryAll<any>('SELECT email FROM users WHERE id = ? AND store_id = ?', [userId, storeId]);
       if (user.length > 0 && user[0].email === 'admin@tecnonova.com') {
         return res.status(400).json({ error: 'No se puede eliminar la cuenta principal de administrador.' });
       }
 
-      await queryRun('DELETE FROM users WHERE id = ?', [userId]);
+      await queryRun('DELETE FROM users WHERE id = ? AND store_id = ?', [userId, storeId]);
       res.json({ success: true, message: 'Usuario eliminado correctamente.' });
     } catch (error: any) {
       console.error('Error eliminando usuario:', error);

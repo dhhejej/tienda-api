@@ -18,7 +18,7 @@ interface SqliteOrderItemRow {
 }
 
 export class SqliteOrderRepository implements OrderRepository {
-  public async findAll(): Promise<Order[]> {
+  public async findAll(storeId?: string): Promise<Order[]> {
     const orderRows = await queryAll<SqliteOrderRow>('SELECT * FROM orders ORDER BY created_at DESC');
     const orders: Order[] = [];
 
@@ -39,7 +39,7 @@ export class SqliteOrderRepository implements OrderRepository {
     return orders;
   }
 
-  public async findById(id: string): Promise<Order | null> {
+  public async findById(id: string, storeId?: string): Promise<Order | null> {
     const r = await queryGet<SqliteOrderRow>('SELECT * FROM orders WHERE id = ?', [id]);
     if (!r) return null;
 
@@ -57,7 +57,7 @@ export class SqliteOrderRepository implements OrderRepository {
     return new Order(r.id, items, r.total, r.status, new Date(r.created_at), r.user_id);
   }
 
-  public async findByUserId(userId: string): Promise<Order[]> {
+  public async findByUserId(userId: string, storeId?: string): Promise<Order[]> {
     const orderRows = await queryAll<SqliteOrderRow>(
       'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
       [userId]
@@ -81,7 +81,7 @@ export class SqliteOrderRepository implements OrderRepository {
     return orders;
   }
 
-  public async save(order: Order): Promise<void> {
+  public async save(order: Order, storeId?: string): Promise<void> {
     await queryRun(
       'INSERT OR REPLACE INTO orders (id, total, status, created_at, user_id) VALUES (?, ?, ?, ?, ?)',
       [order.id, order.total, order.status, order.createdAt.toISOString(), order.userId]

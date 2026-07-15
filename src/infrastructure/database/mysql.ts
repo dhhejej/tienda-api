@@ -81,9 +81,36 @@ export async function initDatabase(): Promise<void> {
     `);
     console.log('Columna user_id y restricción de FK añadidas a la tabla orders.');
   } catch (error: any) {
-    // Ignorar si la columna ya existe
     if (!error.message.includes('Duplicate column name') && !error.message.includes('already exists') && !error.message.includes('duplicate key')) {
       console.warn('Advertencia al alterar la tabla orders:', error.message);
+    }
+  }
+
+  // Alter tables safely to add store_id
+  try {
+    await queryRun("ALTER TABLE users ADD COLUMN store_id VARCHAR(50) NOT NULL DEFAULT 'tienda1'");
+    console.log("Columna store_id añadida a la tabla users.");
+  } catch (e: any) {
+    if (!e.message.includes('Duplicate column name') && !e.message.includes('already exists')) {
+      console.warn("Advertencia al alterar users:", e.message);
+    }
+  }
+
+  try {
+    await queryRun("ALTER TABLE products ADD COLUMN store_id VARCHAR(50) NOT NULL DEFAULT 'tienda1'");
+    console.log("Columna store_id añadida a la tabla products.");
+  } catch (e: any) {
+    if (!e.message.includes('Duplicate column name') && !e.message.includes('already exists')) {
+      console.warn("Advertencia al alterar products:", e.message);
+    }
+  }
+
+  try {
+    await queryRun("ALTER TABLE orders ADD COLUMN store_id VARCHAR(50) NOT NULL DEFAULT 'tienda1'");
+    console.log("Columna store_id añadida a la tabla orders.");
+  } catch (e: any) {
+    if (!e.message.includes('Duplicate column name') && !e.message.includes('already exists')) {
+      console.warn("Advertencia al alterar orders:", e.message);
     }
   }
 
@@ -103,27 +130,36 @@ export async function initDatabase(): Promise<void> {
   const rows = await queryAll<{ count: number }>('SELECT COUNT(*) as count FROM products');
   if (rows && rows[0] && rows[0].count === 0) {
     const defaultProducts = [
-      ['prod-1', 'Laptop Gamer Pro', 'Laptop con procesador i9 y tarjeta RTX 4080', 35000.00, 10],
-      ['prod-2', 'Mouse Mecánico Inalámbrico', 'Mouse ergonómico con sensor óptico de 26k DPI', 1200.00, 50],
-      ['prod-3', 'Teclado Mecánico RGB', 'Teclado hot-swappable con switches lineares', 1800.00, 25],
-      ['prod-4', 'Monitor Curvo 34"', 'Monitor ultrawide 144Hz 1ms', 8500.00, 15]
+      // Tienda 1: Productos de hardware de computadora
+      ['prod-1', 'Laptop Gamer Pro', 'Laptop con procesador i9 y tarjeta RTX 4080', 35000.00, 10, 'tienda1'],
+      ['prod-2', 'Mouse Mecánico Inalámbrico', 'Mouse ergonómico con sensor óptico de 26k DPI', 1200.00, 50, 'tienda1'],
+      ['prod-3', 'Teclado Mecánico RGB', 'Teclado hot-swappable con switches lineares', 1800.00, 25, 'tienda1'],
+      ['prod-4', 'Monitor Curvo 34"', 'Monitor ultrawide 144Hz 1ms', 8500.00, 15, 'tienda1'],
+      // Tienda 2: Accesorios de consolas / Gadgets
+      ['prod-t2-1', 'Consola Next-Gen 1TB', 'Consola de videojuegos con soporte de resolución 4K HDR', 14000.00, 8, 'tienda2'],
+      ['prod-t2-2', 'Mando Inalámbrico Pro', 'Control con gatillos adaptativos y retroalimentación háptica', 1500.00, 30, 'tienda2'],
+      ['prod-t2-3', 'Auriculares 3D Surround', 'Audífonos inalámbricos con sonido espacial inmersivo', 2200.00, 20, 'tienda2']
     ];
 
     for (const p of defaultProducts) {
-      await queryRun('INSERT INTO products (id, name, description, price, stock) VALUES (?, ?, ?, ?, ?)', p);
+      await queryRun('INSERT INTO products (id, name, description, price, stock, store_id) VALUES (?, ?, ?, ?, ?, ?)', p);
     }
     console.log('Tablas inicializadas y productos semilla agregados en MySQL.');
   }
 
-  // Seed default admin user
+  // Seed default admin users for both stores
   const userRows = await queryAll<{ count: number }>('SELECT COUNT(*) as count FROM users');
   if (userRows && userRows[0] && userRows[0].count === 0) {
     const adminPasswordHash = bcrypt.hashSync('adminpassword123', 10);
     await queryRun(
-      'INSERT INTO users (id, email, password, name, role) VALUES (?, ?, ?, ?, ?)',
-      ['user-admin', 'admin@tecnonova.com', adminPasswordHash, 'Administrador TecnoNova', 'admin']
+      'INSERT INTO users (id, email, password, name, role, store_id) VALUES (?, ?, ?, ?, ?, ?)',
+      ['user-admin-t1', 'admin@tecnonova.com', adminPasswordHash, 'Administrador TecnoNova T1', 'admin', 'tienda1']
     );
-    console.log('Usuario Administrador por defecto creado (admin@tecnonova.com).');
+    await queryRun(
+      'INSERT INTO users (id, email, password, name, role, store_id) VALUES (?, ?, ?, ?, ?, ?)',
+      ['user-admin-t2', 'admin@tecnonova.com', adminPasswordHash, 'Administrador TecnoNova T2', 'admin', 'tienda2']
+    );
+    console.log('Usuarios Administradores creados para tienda1 y tienda2.');
   }
 }
 

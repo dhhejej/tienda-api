@@ -3,14 +3,30 @@ let products = [];
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let orders = [];
 
-// Sobrescribir fetch globalmente para inyectar token JWT si existe en localStorage
+// Obtener el ID de la tienda desde el parámetro query (?store=tienda1 o ?store=tienda2)
+const storeId = new URLSearchParams(window.location.search).get('store') || localStorage.getItem('storeId') || 'tienda1';
+localStorage.setItem('storeId', storeId);
+
+// Personalizar interfaz según la tienda
+document.addEventListener('DOMContentLoaded', () => {
+  if (storeId === 'tienda2') {
+    document.title = "TecnoNova Accesorios - Tienda 2";
+    const logoText = document.querySelector('.logo .gradient-text');
+    if (logoText) logoText.textContent = "TecnoNova Accesorios";
+    const authTitle = document.querySelector('#auth-view h2');
+    if (authTitle) authTitle.textContent = "Ingresa a TecnoNova Accesorios";
+  }
+});
+
+// Sobrescribir fetch globalmente para inyectar token JWT y el ID de tienda si existen
 const originalFetch = window.fetch;
 window.fetch = function(url, options = {}) {
+  options.headers = options.headers || {};
   const token = localStorage.getItem('token');
   if (token) {
-    options.headers = options.headers || {};
     options.headers['Authorization'] = `Bearer ${token}`;
   }
+  options.headers['x-store-id'] = storeId;
   return originalFetch(url, options);
 };
 

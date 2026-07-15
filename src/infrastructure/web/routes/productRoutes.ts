@@ -8,9 +8,11 @@ export function createProductRouter(productRepository: ProductRepository): Route
   const router = Router();
   const manageProducts = new ManageProducts(productRepository);
 
+  const getStoreId = (req: Request) => String(req.headers['x-store-id'] || req.query.storeId || 'tienda1');
+
   router.get('/', async (req: Request, res: Response) => {
     try {
-      const catalog = await manageProducts.getCatalog();
+      const catalog = await manageProducts.getCatalog(getStoreId(req));
       res.json(catalog);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -19,7 +21,7 @@ export function createProductRouter(productRepository: ProductRepository): Route
 
   router.get('/:id', async (req: Request, res: Response) => {
     try {
-      const product = await manageProducts.getProductDetails(req.params.id);
+      const product = await manageProducts.getProductDetails(req.params.id, getStoreId(req));
       if (!product) {
         return res.status(404).json({ error: 'Product not found' });
       }
@@ -35,7 +37,7 @@ export function createProductRouter(productRepository: ProductRepository): Route
       if (!id || !name || !price || stock === undefined) {
         return res.status(400).json({ error: 'Missing required fields: id, name, price, stock' });
       }
-      const product = await manageProducts.addProduct(id, name, description || '', Number(price), Number(stock));
+      const product = await manageProducts.addProduct(id, name, description || '', Number(price), Number(stock), getStoreId(req));
       res.status(201).json(product);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -43,9 +45,8 @@ export function createProductRouter(productRepository: ProductRepository): Route
   });
 
   router.delete('/:id', async (req: Request, res: Response) => {
-
     try {
-      await manageProducts.deleteProduct(req.params.id);
+      await manageProducts.deleteProduct(req.params.id, getStoreId(req));
       res.json({ message: 'Product deleted successfully' });
     } catch (error: any) {
       const status = error.message.includes('Product not found') ? 404 : 500;
@@ -68,8 +69,8 @@ export function createProductRouter(productRepository: ProductRepository): Route
       }
 
       await queryRun(
-        'UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ?',
-        [name, description || '', Number(price), Number(stock), prodId]
+        'UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ? AND store_id = ?',
+        [name, description || '', Number(price), Number(stock), prodId, getStoreId(req)]
       );
 
       res.json({ success: true, message: 'Producto actualizado correctamente.' });

@@ -4,22 +4,22 @@ import { Order } from '../../domain/entities/Order';
 export class InMemoryOrderRepository implements OrderRepository {
   private orders: Map<string, Order> = new Map();
 
-  public async findAll(): Promise<Order[]> {
+  public async findAll(storeId?: string): Promise<Order[]> {
     return Array.from(this.orders.values());
   }
 
-  public async findById(id: string): Promise<Order | null> {
+  public async findById(id: string, storeId?: string): Promise<Order | null> {
     const order = this.orders.get(id);
     return order ? this.cloneOrder(order) : null;
   }
 
-  public async findByUserId(userId: string): Promise<Order[]> {
+  public async findByUserId(userId: string, storeId?: string): Promise<Order[]> {
     return Array.from(this.orders.values())
       .filter(o => o.userId === userId)
       .map(o => this.cloneOrder(o));
   }
 
-  public async save(order: Order): Promise<void> {
+  public async save(order: Order, storeId?: string): Promise<void> {
     this.orders.set(order.id, this.cloneOrder(order));
   }
 

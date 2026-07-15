@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { ManageOrders } from '../../../application/use-cases/ManageOrders';
 import { OrderRepository } from '../../../domain/repositories/OrderRepository';
 import { ProductRepository } from '../../../domain/repositories/ProductRepository';
@@ -12,6 +12,8 @@ export function createOrderRouter(
   const router = Router();
   const manageOrders = new ManageOrders(orderRepository, productRepository);
 
+  const getStoreId = (req: Request) => String(req.headers['x-store-id'] || req.query.storeId || 'tienda1');
+
   router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const user = req.user;
@@ -20,12 +22,13 @@ export function createOrderRouter(
       }
 
       let targetUserId = user.role === 'admin' ? undefined : user.id;
+      const storeId = getStoreId(req);
 
       if (user.role === 'admin' && req.query.userId) {
         targetUserId = String(req.query.userId);
       }
 
-      const orders = await manageOrders.getOrders(targetUserId);
+      const orders = await manageOrders.getOrders(targetUserId, storeId);
       res.json(orders);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -34,7 +37,8 @@ export function createOrderRouter(
 
   router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const order = await manageOrders.getOrderDetails(req.params.id);
+      const storeId = getStoreId(req);
+      const order = await manageOrders.getOrderDetails(req.params.id, storeId);
       if (!order) {
         return res.status(404).json({ error: 'Order not found' });
       }
@@ -58,7 +62,8 @@ export function createOrderRouter(
         return res.status(400).json({ error: 'Items array is required to create an order' });
       }
       const orderId = `order-${Date.now()}`;
-      const order = await manageOrders.createOrder(orderId, { items }, req.user?.id);
+      const storeId = getStoreId(req);
+      const order = await manageOrders.createOrder(orderId, { items }, req.user?.id, storeId);
       res.status(201).json(order);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
@@ -72,10 +77,11 @@ export function createOrderRouter(
         return res.status(403).json({ error: 'Acceso denegado.' });
       }
 
-      const ordersCount = await queryAll<any>('SELECT COUNT(*) as count FROM orders');
-      const revenue = await queryAll<any>('SELECT SUM(total) as sum FROM orders WHERE status = "PAID"');
-      const usersCount = await queryAll<any>('SELECT COUNT(*) as count FROM users');
-      const productsCount = await queryAll<any>('SELECT COUNT(*) as count FROM products');
+      const storeId = getStoreId(req);
+      const ordersCount = await queryAll<any>('SELECT COUNT(*) as count FROM orders WHERE store_id = ?', [storeId]);
+      const revenue = await queryAll<any>('SELECT SUM(total) as sum FROM orders WHERE status = "PAID" AND store_id = ?', [storeId]);
+      const usersCount = await queryAll<any>('SELECT COUNT(*) as count FROM users WHERE store_id = ?', [storeId]);
+      const productsCount = await queryAll<any>('SELECT COUNT(*) as count FROM products WHERE store_id = ?', [storeId]);
 
       res.json({
         totalOrders: ordersCount[0]?.count || 0,
