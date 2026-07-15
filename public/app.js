@@ -468,10 +468,12 @@ function switchView(viewName) {
   const token = localStorage.getItem('token');
   const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
-  if (viewName === 'orders' && !token) {
-    showToast('Inicia sesión para poder ver tu historial de compras.');
-    switchView('auth');
-    return;
+  // Si no hay token de sesión, forzar la vista de login/registro
+  if (!token) {
+    viewName = 'auth';
+  } else if (viewName === 'auth') {
+    // Si ya está logueado y va a auth, mandarlo al catálogo
+    viewName = 'catalog';
   }
 
   if (viewName === 'admin' && !isAdmin) {
@@ -704,6 +706,10 @@ function checkAuthStatus() {
       userDisplayName.style.display = 'inline';
       authLogoutBtn.style.display = 'inline-block';
       navAuthBtn.style.display = 'none';
+      
+      // Mostrar catálogo y carrito
+      navCatalogBtn.style.display = 'inline-block';
+      cartToggle.style.display = 'flex';
 
       // Si el rol es admin, habilitar siempre botones del panel
       if (user.role === 'admin') {
@@ -729,12 +735,14 @@ function checkAuthStatus() {
     authLogoutBtn.style.display = 'none';
     navAuthBtn.style.display = 'inline-block';
     
-    checkAdminAccess();
+    // Ocultar catálogo, pedidos, admin y carrito si no hay sesión
+    navCatalogBtn.style.display = 'none';
+    navOrdersBtn.style.display = 'none';
+    navAdminBtn.style.display = 'none';
+    cartToggle.style.display = 'none';
     
-    // Si la vista actual es auth, orders o admin y no hay sesión, volver a catalog
-    if (ordersView.classList.contains('active') || adminView.classList.contains('active') || authView.classList.contains('active')) {
-      switchView('catalog');
-    }
+    checkAdminAccess();
+    switchView('auth');
   }
 }
 
