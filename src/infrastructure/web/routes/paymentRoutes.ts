@@ -71,6 +71,11 @@ export function createPaymentRouter(
     }
   });
 
+  // Webhook GET (para comprobación en navegador)
+  router.get('/webhook', (req, res) => {
+    res.send('El endpoint del Webhook de Stripe está activo, en línea y escuchando solicitudes POST.');
+  });
+
   // 2. Webhook de Stripe (recibe notificaciones de éxito criptográficamente firmadas)
   router.post('/webhook', async (req: any, res) => {
     const sig = req.headers['stripe-signature'];
