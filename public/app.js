@@ -435,6 +435,14 @@ function showToast(message) {
 
 // Switch SPA views
 function switchView(viewName) {
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+  
+  if ((viewName === 'orders' || viewName === 'admin') && !isAdmin) {
+    showToast('Acceso restringido');
+    switchView('catalog');
+    return;
+  }
+
   navCatalogBtn.classList.remove('active');
   navOrdersBtn.classList.remove('active');
   navAdminBtn.classList.remove('active');
@@ -613,5 +621,32 @@ window.increaseCartQty = increaseCartQty;
 window.deleteProduct = deleteProduct;
 window.removeFromCart = removeFromCart;
 
+// Admin Access Checker
+function checkAdminAccess() {
+  const params = new URLSearchParams(window.location.search);
+  const adminParam = params.get('admin');
+
+  if (adminParam === 'tecnonova-admin') {
+    localStorage.setItem('isAdmin', 'true');
+    // Limpiar el parámetro de la barra de direcciones por seguridad
+    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+  } else if (adminParam === 'logout') {
+    localStorage.removeItem('isAdmin');
+    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+  }
+
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+  if (isAdmin) {
+    navOrdersBtn.style.display = 'inline-block';
+    navAdminBtn.style.display = 'inline-block';
+  } else {
+    navOrdersBtn.style.display = 'none';
+    navAdminBtn.style.display = 'none';
+  }
+}
+
 // Init
+checkAdminAccess();
 fetchCatalog();
