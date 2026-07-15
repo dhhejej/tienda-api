@@ -4,7 +4,7 @@ import { ProductRepository } from '../../../domain/repositories/ProductRepositor
 import { OrderRepository } from '../../../domain/repositories/OrderRepository';
 import { Order } from '../../../domain/entities/Order';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder_key_to_prevent_crash');
+const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder_key_to_prevent_crash').trim());
 
 export function createPaymentRouter(
   productRepository: ProductRepository,
