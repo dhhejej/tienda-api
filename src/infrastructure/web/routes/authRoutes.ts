@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { UserRepository } from '../../../domain/repositories/UserRepository';
 import { User } from '../../../domain/entities/User';
+import { authMiddleware, AuthenticatedRequest } from '../middleware/authMiddleware';
+import { queryAll } from '../../database/mysql';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_fallback_key';
 
@@ -76,6 +78,22 @@ export function createAuthRouter(userRepository: UserRepository): Router {
     } catch (error: any) {
       console.error('Error en login:', error);
       res.status(500).json({ error: error.message || 'Error al iniciar sesión.' });
+    }
+  });
+
+  // 3. Obtener todos los usuarios registrados (solo para Admin)
+  router.get('/users', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ error: 'Acceso denegado.' });
+      }
+      const rows = await queryAll<{ id: string; email: string; name: string; role: string }>(
+        'SELECT id, email, name, role FROM users ORDER BY name ASC'
+      );
+      res.json(rows);
+    } catch (error: any) {
+      console.error('Error obteniendo usuarios:', error);
+      res.status(500).json({ error: error.message || 'Error al obtener usuarios.' });
     }
   });
 

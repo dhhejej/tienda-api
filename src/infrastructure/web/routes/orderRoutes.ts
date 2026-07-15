@@ -18,8 +18,13 @@ export function createOrderRouter(
         return res.status(401).json({ error: 'Acceso no autorizado.' });
       }
 
-      // Si es admin, ve todas las órdenes; si es cliente, solo las suyas
-      const orders = await manageOrders.getOrders(user.role === 'admin' ? undefined : user.id);
+      let targetUserId = user.role === 'admin' ? undefined : user.id;
+
+      if (user.role === 'admin' && req.query.userId) {
+        targetUserId = String(req.query.userId);
+      }
+
+      const orders = await manageOrders.getOrders(targetUserId);
       res.json(orders);
     } catch (error: any) {
       res.status(500).json({ error: error.message });

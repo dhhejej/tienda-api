@@ -62,6 +62,11 @@ const adminView = document.getElementById('admin-view');
 
 const addProductForm = document.getElementById('add-product-form');
 const inventoryList = document.getElementById('inventory-list');
+const usersList = document.getElementById('users-list');
+const userOrdersModal = document.getElementById('user-orders-modal');
+const closeUserOrdersModal = document.getElementById('close-user-orders-modal');
+const userOrdersModalTitle = document.getElementById('user-orders-modal-title');
+const userOrdersContainer = document.getElementById('user-orders-container');
 
 
 // Fetch Catalog
@@ -504,6 +509,7 @@ function switchView(viewName) {
     navAdminBtn.classList.add('active');
     adminView.classList.add('active');
     fetchCatalog();
+    fetchUsers();
   } else if (viewName === 'auth') {
     navAuthBtn.classList.add('active');
     authView.classList.add('active');
@@ -516,6 +522,7 @@ closeCart.addEventListener('click', () => toggleCartDrawer(false));
 drawerOverlay.addEventListener('click', () => {
   toggleCartDrawer(false);
   togglePaymentModal(false);
+  toggleUserOrdersModal(false);
 });
 checkoutBtn.addEventListener('click', checkout);
 closePayment.addEventListener('click', () => togglePaymentModal(false));
@@ -843,6 +850,131 @@ goToLoginBtn.addEventListener('click', (e) => {
 });
 loginForm.addEventListener('submit', handleLoginSubmit);
 registerForm.addEventListener('submit', handleRegisterSubmit);
+closeUserOrdersModal.addEventListener('click', () => toggleUserOrdersModal(false));
+
+// Controlar Modal de Pedidos del Usuario
+function toggleUserOrdersModal(open) {
+  if (open) {
+    userOrdersModal.classList.add('open');
+    drawerOverlay.classList.add('open');
+  } else {
+    userOrdersModal.classList.remove('open');
+    drawerOverlay.classList.remove('open');
+  }
+}
+
+// Obtener y Renderizar Lista de Usuarios (Admin)
+async function fetchUsers() {
+  try {
+    const res = await fetch('/api/auth/users');
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Error al obtener usuarios');
+    }
+
+    renderUsers(data);
+  } catch (err) {
+    console.error('Error al listar usuarios:', err);
+    usersList.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">Error al cargar los usuarios registrados</td></tr>';
+  }
+}
+
+function renderUsers(users) {
+  usersList.innerHTML = '';
+  if (users.length === 0) {
+    usersList.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No hay usuarios registrados</td></tr>';
+    return;
+  }
+
+  users.forEach(u => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${escapeHtml(u.name)}</strong></td>
+      <td>${escapeHtml(u.email)}</td>
+      <td><span class="status-badge" style="background: ${u.role === 'admin' ? 'rgba(168, 85, 247, 0.2)' : 'rgba(59, 130, 246, 0.2)'}; color: ${u.role === 'admin' ? '#c084fc' : '#60a5fa'};">${escapeHtml(u.role)}</span></td>
+      <td>
+        <button class="delete-btn" onclick="showUserOrders('${u.id}', '${escapeHtml(u.name)}')" style="background: var(--accent-primary); border-color: var(--accent-primary); color: white; padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500;">Ver Compras</button>
+      </td>
+    `;
+    usersList.appendChild(tr);
+  });
+}
+
+// Consultar Historial de Compras de un Usuario Específico (Admin)
+async function showUserOrders(userId, userName) {
+  try {
+    userOrdersModalTitle.innerText = `Pedidos de ${userName}`;
+    userOrdersContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">Cargando historial de compras...</p>';
+    toggleUserOrdersModal(true);
+
+    const res = await fetch(`/api/orders?userId=${userId}`);
+    const orders = await res.json();
+
+    if (!res.ok) {
+      throw new Error(orders.error || 'Error al obtener los pedidos del usuario');
+    }
+
+    renderUserOrders(orders);
+  } catch (err) {
+    showToast(err.message || 'Error al obtener historial del usuario');
+    console.error(err);
+  }
+}
+
+function renderUserOrders(orders) {
+  userOrdersContainer.innerHTML = '';
+  if (orders.length === 0) {
+    userOrdersContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">Este usuario no tiene compras registradas en el servidor.</p>';
+    return;
+  }
+
+  orders.forEach(order => {
+    const card = document.createElement('div');
+    card.className = 'order-card';
+    card.style.background = 'rgba(255, 255, 255, 0.02)';
+    card.style.border = '1px solid var(--border-color)';
+    card.style.borderRadius = 'var(--radius-md)';
+    card.style.padding = '1.2rem';
+    card.style.marginBottom = '1rem';
+
+    const dateStr = new Date(order.createdAt).toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    let itemsHtml = order.items.map(item => `
+      <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.4rem;">
+        <span>${escapeHtml(item.productName)} x ${item.quantity}</span>
+        <span>$${(item.price * item.quantity).toLocaleString('es-MX')} MXN</span>
+      </div>
+    `).join('');
+
+    card.innerHTML = `
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.6rem; margin-bottom: 0.6rem;">
+        <div>
+          <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary); display: block;">${order.id}</span>
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">${dateStr}</span>
+        </div>
+        <span class="status-badge status-paid">PAID</span>
+      </div>
+      <div>
+        ${itemsHtml}
+      </div>
+      <div style="display: flex; justify-content: space-between; font-weight: 600; border-top: 1px solid var(--border-color); margin-top: 0.6rem; padding-top: 0.6rem; color: var(--text-primary);">
+        <span>Total de la Compra</span>
+        <span>$${order.total.toLocaleString('es-MX')} MXN</span>
+      </div>
+    `;
+    userOrdersContainer.appendChild(card);
+  });
+}
+
+// Exponer globalmente las funciones necesarias en onclick inline
+window.showUserOrders = showUserOrders;
 
 // Init
 checkAuthStatus();

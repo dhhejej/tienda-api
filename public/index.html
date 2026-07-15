@@ -161,6 +161,26 @@
             </table>
           </div>
         </div>
+
+        <!-- Manage Registered Users List -->
+        <div class="admin-card" style="grid-column: 1 / -1; margin-top: 2rem;">
+          <h3>Usuarios Registrados y Ventas</h3>
+          <div class="inventory-table-container">
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Correo Electrónico</th>
+                  <th>Rol</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="users-list">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -260,6 +280,21 @@
   <footer>
     <p>&copy; 2026 TecnoNova. Powered by Antigravity Clean Architecture Backend.</p>
   </footer>
+
+  <!-- User Orders Modal -->
+  <div class="payment-modal" id="user-orders-modal">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 id="user-orders-modal-title">Pedidos del Usuario</h3>
+        <button class="close-btn" id="close-user-orders-modal">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height: 450px; overflow-y: auto;">
+        <div id="user-orders-container">
+          <!-- User orders list injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
