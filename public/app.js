@@ -31,10 +31,11 @@ const toast = document.getElementById('toast');
 const navCatalogBtn = document.getElementById('nav-catalog-btn');
 const navOrdersBtn = document.getElementById('nav-orders-btn');
 const navAdminBtn = document.getElementById('nav-admin-btn');
+const navAuthBtn = document.getElementById('nav-auth-btn');
 
 // Elementos de Autenticación
 const authView = document.getElementById('auth-view');
-const authActionBtn = document.getElementById('auth-action-btn');
+const authLogoutBtn = document.getElementById('auth-logout-btn');
 const userDisplayName = document.getElementById('user-display-name');
 
 const loginForm = document.getElementById('login-form');
@@ -467,12 +468,10 @@ function switchView(viewName) {
   const token = localStorage.getItem('token');
   const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
-  // Si no hay token, la única vista válida es 'auth'
-  if (!token) {
-    viewName = 'auth';
-  } else if (viewName === 'auth') {
-    // Si ya hay token, no mostramos el login sino el catálogo
-    viewName = 'catalog';
+  if (viewName === 'orders' && !token) {
+    showToast('Inicia sesión para poder ver tu historial de compras.');
+    switchView('auth');
+    return;
   }
 
   if (viewName === 'admin' && !isAdmin) {
@@ -484,39 +483,28 @@ function switchView(viewName) {
   navCatalogBtn.classList.remove('active');
   navOrdersBtn.classList.remove('active');
   navAdminBtn.classList.remove('active');
+  navAuthBtn.classList.remove('active');
   
   authView.classList.remove('active');
   catalogView.classList.remove('active');
   ordersView.classList.remove('active');
   adminView.classList.remove('active');
 
-  const headerNav = document.querySelector('header nav');
-  const cartToggleBtn = document.getElementById('cart-toggle');
-  const userAuthSection = document.querySelector('.user-auth-section');
-
-  if (viewName === 'auth') {
+  if (viewName === 'catalog') {
+    navCatalogBtn.classList.add('active');
+    catalogView.classList.add('active');
+    fetchCatalog();
+  } else if (viewName === 'orders') {
+    navOrdersBtn.classList.add('active');
+    ordersView.classList.add('active');
+    fetchOrders();
+  } else if (viewName === 'admin') {
+    navAdminBtn.classList.add('active');
+    adminView.classList.add('active');
+    fetchCatalog();
+  } else if (viewName === 'auth') {
+    navAuthBtn.classList.add('active');
     authView.classList.add('active');
-    if (headerNav) headerNav.style.display = 'none';
-    if (cartToggleBtn) cartToggleBtn.style.display = 'none';
-    if (userAuthSection) userAuthSection.style.display = 'none';
-  } else {
-    if (headerNav) headerNav.style.display = 'flex';
-    if (cartToggleBtn) cartToggleBtn.style.display = 'flex';
-    if (userAuthSection) userAuthSection.style.display = 'flex';
-
-    if (viewName === 'catalog') {
-      navCatalogBtn.classList.add('active');
-      catalogView.classList.add('active');
-      fetchCatalog();
-    } else if (viewName === 'orders') {
-      navOrdersBtn.classList.add('active');
-      ordersView.classList.add('active');
-      fetchOrders();
-    } else if (viewName === 'admin') {
-      navAdminBtn.classList.add('active');
-      adminView.classList.add('active');
-      fetchCatalog();
-    }
   }
 }
 
@@ -567,6 +555,7 @@ cardCvvInput.addEventListener('input', (e) => {
 navCatalogBtn.addEventListener('click', () => switchView('catalog'));
 navOrdersBtn.addEventListener('click', () => switchView('orders'));
 navAdminBtn.addEventListener('click', () => switchView('admin'));
+navAuthBtn.addEventListener('click', () => switchView('auth'));
 addProductForm.addEventListener('submit', handleAddProductSubmit);
 
 // Render Inventory in Admin Panel
@@ -697,6 +686,7 @@ function handleAuthAction() {
     localStorage.removeItem('isAdmin');
     showToast('Sesión cerrada correctamente');
     checkAuthStatus();
+    switchView('catalog');
   } else {
     switchView('auth');
   }
@@ -712,7 +702,8 @@ function checkAuthStatus() {
       const user = JSON.parse(userStr);
       userDisplayName.innerText = `Hola, ${user.name}`;
       userDisplayName.style.display = 'inline';
-      authActionBtn.innerText = 'Cerrar Sesión';
+      authLogoutBtn.style.display = 'inline-block';
+      navAuthBtn.style.display = 'none';
 
       // Si el rol es admin, habilitar siempre botones del panel
       if (user.role === 'admin') {
@@ -731,13 +722,19 @@ function checkAuthStatus() {
       console.error(e);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      switchView('auth');
+      checkAuthStatus();
     }
   } else {
     userDisplayName.style.display = 'none';
-    authActionBtn.innerText = 'Iniciar Sesión';
+    authLogoutBtn.style.display = 'none';
+    navAuthBtn.style.display = 'inline-block';
+    
     checkAdminAccess();
-    switchView('auth');
+    
+    // Si la vista actual es auth, orders o admin y no hay sesión, volver a catalog
+    if (ordersView.classList.contains('active') || adminView.classList.contains('active') || authView.classList.contains('active')) {
+      switchView('catalog');
+    }
   }
 }
 
@@ -792,6 +789,7 @@ async function handleLoginSubmit(e) {
     
     showToast(`¡Bienvenido, ${data.user.name}!`);
     checkAuthStatus();
+    switchView('catalog');
   } catch (err) {
     showToast(err.message || 'Error de autenticación');
     console.error(err);
@@ -825,7 +823,7 @@ async function handleRegisterSubmit(e) {
 }
 
 // Event Listeners de Autenticación
-authActionBtn.addEventListener('click', handleAuthAction);
+authLogoutBtn.addEventListener('click', handleAuthAction);
 goToRegisterBtn.addEventListener('click', (e) => {
   e.preventDefault();
   showRegisterForm();

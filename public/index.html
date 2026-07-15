@@ -21,10 +21,11 @@
         <button id="nav-catalog-btn" class="nav-btn active">Catálogo</button>
         <button id="nav-orders-btn" class="nav-btn" style="display: none;">Historial de Órdenes</button>
         <button id="nav-admin-btn" class="nav-btn" style="display: none;">Administración</button>
+        <button id="nav-auth-btn" class="nav-btn">Iniciar Sesión</button>
       </nav>
       <div class="user-auth-section" style="display: flex; align-items: center; gap: 1rem;">
         <span id="user-display-name" style="display: none; color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;"></span>
-        <button id="auth-action-btn" class="nav-btn" style="font-size: 0.9rem;">Iniciar Sesión</button>
+        <button id="auth-logout-btn" class="nav-btn" style="display: none; font-size: 0.9rem;">Cerrar Sesión</button>
       </div>
       <div class="cart-trigger" id="cart-toggle">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -36,7 +37,7 @@
   <!-- Main Content Area -->
   <main class="container">
     <!-- View: Auth (Login / Register) -->
-    <section id="auth-view" class="view-section active">
+    <section id="auth-view" class="view-section">
       <div class="section-header" style="text-align: center; margin-bottom: 2rem;">
         <h2>Ingresa a TecnoNova</h2>
         <p>Inicia sesión o crea una cuenta para acceder al catálogo exclusivo.</p>
@@ -81,7 +82,7 @@
     </section>
 
     <!-- View: Catalog -->
-    <section id="catalog-view" class="view-section">
+    <section id="catalog-view" class="view-section active">
       <div class="section-header">
         <h2>Equipamiento de Élite</h2>
         <p>Selecciona los componentes de más alto rendimiento para tu build.</p>
