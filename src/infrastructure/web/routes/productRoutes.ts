@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { ManageProducts } from '../../../application/use-cases/ManageProducts';
 import { ProductRepository } from '../../../domain/repositories/ProductRepository';
 import { authMiddleware, AuthenticatedRequest } from '../middleware/authMiddleware';
-import { runQuery } from '../../database/mysql';
+import { queryRun } from '../../database/mysql';
 
 export function createProductRouter(productRepository: ProductRepository): Router {
   const router = Router();
@@ -67,7 +67,7 @@ export function createProductRouter(productRepository: ProductRepository): Route
         return res.status(400).json({ error: 'Faltan campos obligatorios: name, price, stock.' });
       }
 
-      await runQuery(
+      await queryRun(
         'UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ?',
         [name, description || '', Number(price), Number(stock), prodId]
       );

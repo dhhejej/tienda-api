@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { UserRepository } from '../../../domain/repositories/UserRepository';
 import { User } from '../../../domain/entities/User';
 import { authMiddleware, AuthenticatedRequest } from '../middleware/authMiddleware';
-import { queryAll, runQuery } from '../../database/mysql';
+import { queryAll, queryRun } from '../../database/mysql';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_fallback_key';
 
@@ -111,7 +111,7 @@ export function createAuthRouter(userRepository: UserRepository): Router {
         return res.status(400).json({ error: 'No se puede eliminar la cuenta principal de administrador.' });
       }
 
-      await runQuery('DELETE FROM users WHERE id = ?', [userId]);
+      await queryRun('DELETE FROM users WHERE id = ?', [userId]);
       res.json({ success: true, message: 'Usuario eliminado correctamente.' });
     } catch (error: any) {
       console.error('Error eliminando usuario:', error);
