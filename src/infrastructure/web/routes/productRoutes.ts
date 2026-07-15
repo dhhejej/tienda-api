@@ -69,8 +69,8 @@ export function createProductRouter(productRepository: ProductRepository): Route
       }
 
       await queryRun(
-        'UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ? AND store_id = ?',
-        [name, description || '', Number(price), Number(stock), prodId, getStoreId(req)]
+        'UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ?',
+        [name, description || '', Number(price), Number(stock), prodId]
       );
 
       res.json({ success: true, message: 'Producto actualizado correctamente.' });

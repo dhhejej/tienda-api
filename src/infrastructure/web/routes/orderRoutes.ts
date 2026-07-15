@@ -78,10 +78,10 @@ export function createOrderRouter(
       }
 
       const storeId = getStoreId(req);
-      const ordersCount = await queryAll<any>('SELECT COUNT(*) as count FROM orders WHERE store_id = ?', [storeId]);
-      const revenue = await queryAll<any>('SELECT SUM(total) as sum FROM orders WHERE status = "PAID" AND store_id = ?', [storeId]);
-      const usersCount = await queryAll<any>('SELECT COUNT(*) as count FROM users WHERE store_id = ?', [storeId]);
-      const productsCount = await queryAll<any>('SELECT COUNT(*) as count FROM products WHERE store_id = ?', [storeId]);
+      const ordersCount = await queryAll<any>('SELECT COUNT(*) as count FROM orders');
+      const revenue = await queryAll<any>('SELECT SUM(total) as sum FROM orders WHERE status = "PAID"');
+      const usersCount = await queryAll<any>('SELECT COUNT(*) as count FROM users');
+      const productsCount = await queryAll<any>('SELECT COUNT(*) as count FROM products');
 
       res.json({
         totalOrders: ordersCount[0]?.count || 0,

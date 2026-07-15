@@ -92,8 +92,7 @@ export function createAuthRouter(userRepository: UserRepository): Router {
         return res.status(403).json({ error: 'Acceso denegado.' });
       }
       const rows = await queryAll<{ id: string; email: string; name: string; role: string }>(
-        'SELECT id, email, name, role FROM users WHERE store_id = ? ORDER BY name ASC',
-        [getStoreId(req)]
+        'SELECT id, email, name, role FROM users ORDER BY name ASC'
       );
       res.json(rows);
     } catch (error: any) {
@@ -110,15 +109,14 @@ export function createAuthRouter(userRepository: UserRepository): Router {
       }
 
       const userId = req.params.id;
-      const storeId = getStoreId(req);
       
       // Validar que no se auto-elimine el administrador semilla
-      const user = await queryAll<any>('SELECT email FROM users WHERE id = ? AND store_id = ?', [userId, storeId]);
+      const user = await queryAll<any>('SELECT email FROM users WHERE id = ?', [userId]);
       if (user.length > 0 && user[0].email === 'admin@tecnonova.com') {
         return res.status(400).json({ error: 'No se puede eliminar la cuenta principal de administrador.' });
       }
 
-      await queryRun('DELETE FROM users WHERE id = ? AND store_id = ?', [userId, storeId]);
+      await queryRun('DELETE FROM users WHERE id = ?', [userId]);
       res.json({ success: true, message: 'Usuario eliminado correctamente.' });
     } catch (error: any) {
       console.error('Error eliminando usuario:', error);
