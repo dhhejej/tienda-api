@@ -11,7 +11,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_fallback_key';
 export function createAuthRouter(userRepository: UserRepository): Router {
   const router = Router();
 
-  const getStoreId = (req: Request) => String(req.headers['x-store-id'] || req.query.storeId || 'tienda1');
+  const getStoreId = (req: Request) => String(req.headers['x-store-id'] || req.query.storeId || process.env.DEFAULT_STORE_ID || 'tienda1');
 
   // 1. Registro de Usuario
   router.post('/register', async (req: Request, res: Response) => {

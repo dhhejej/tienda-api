@@ -12,7 +12,7 @@ export function createOrderRouter(
   const router = Router();
   const manageOrders = new ManageOrders(orderRepository, productRepository);
 
-  const getStoreId = (req: Request) => String(req.headers['x-store-id'] || req.query.storeId || 'tienda1');
+  const getStoreId = (req: Request) => String(req.headers['x-store-id'] || req.query.storeId || process.env.DEFAULT_STORE_ID || 'tienda1');
 
   router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {

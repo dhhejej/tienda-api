@@ -8,7 +8,7 @@ export function createProductRouter(productRepository: ProductRepository): Route
   const router = Router();
   const manageProducts = new ManageProducts(productRepository);
 
-  const getStoreId = (req: Request) => String(req.headers['x-store-id'] || req.query.storeId || 'tienda1');
+  const getStoreId = (req: Request) => String(req.headers['x-store-id'] || req.query.storeId || process.env.DEFAULT_STORE_ID || 'tienda1');
 
   router.get('/', async (req: Request, res: Response) => {
     try {

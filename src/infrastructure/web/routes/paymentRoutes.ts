@@ -21,7 +21,7 @@ export function createPaymentRouter(
         return res.status(400).json({ error: 'El carrito no puede estar vacío.' });
       }
 
-      const getStoreId = (req: any) => String(req.headers['x-store-id'] || req.query.storeId || 'tienda1');
+      const getStoreId = (req: any) => String(req.headers['x-store-id'] || req.query.storeId || process.env.DEFAULT_STORE_ID || 'tienda1');
       const storeId = getStoreId(req);
 
       const lineItems = [];
